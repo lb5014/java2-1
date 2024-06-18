@@ -1,5 +1,111 @@
 # 지영준 202130230  
 
+## 6월 14일 강의내용  
+1교시 13장
+1. 입출력 스트림 (I/O Streams)  
+입출력 스트림은 데이터를 읽고 쓰기 위한 일련의 추상화입니다. 이 스트림은 데이터의 흐름을 의미하며, 데이터 소스(입력)나 데이터 대상(출력)을 추상화하여 프로그래머가 쉽게 데이터를 처리할 수 있도록 합니다.
+
+종류
+
+1.	입력 스트림 (Input Stream):  
+	*	입력 스트림은 데이터를 읽어들이는 데 사용됩니다. 데이터를 입력받는 소스가 파일일 수도 있고, 키보드, 네트워크 소켓 등이 될 수도 있습니다.  
+	*	예: FileInputStream, BufferedInputStream, DataInputStream 등.  
+2.	출력 스트림 (Output Stream):  
+	*	출력 스트림은 데이터를 출력하는 데 사용됩니다. 데이터를 출력하는 대상이 파일일 수도 있고, 화면, 네트워크 소켓 등이 될 수도 있습니다.  
+	*	예: FileOutputStream, BufferedOutputStream, DataOutputStream 등.  
+
+2. 스트림 클래스 계층 구조 (Java 예시)  
+* Java에서는 입출력 스트림을 위한 다양한 클래스가 있습니다. 이들은 크게 InputStream과 OutputStream 클래스를 상속받습니다.
+
+    * InputStream: 데이터를 바이트 단위로 읽어들이기 위한 기본 클래스입니다. 주요 메서드는 read()입니다.  
+    * FileInputStream: 파일로부터 데이터를 읽어옵니다.  
+    * BufferedInputStream: 데이터를 버퍼링하여 효율적으로 읽어옵니다.  
+    * DataInputStream: 기본 데이터 타입을 읽을 수 있습니다.  
+    * OutputStream: 데이터를 바이트 단위로 쓰기 위한 기본 클래스입니다. 주요 메서드는 write()입니다.  
+    * FileOutputStream: 파일로 데이터를 씁니다.  
+    * BufferedOutputStream: 데이터를 버퍼링하여 효율적으로 씁니다.  
+    * DataOutputStream: 기본 데이터 타입을 쓸 수 있습니다.  
+
+3. 문자 스트림 (Character Streams)  
+* 바이트 스트림이 아닌 문자 데이터를 처리하기 위해 Java는 문자 스트림 클래스를 제공합니다. 
+
+	* Reader: 문자 입력 스트림의 추상 클래스입니다.
+	* FileReader: 파일로부터 문자를 읽어옵니다.
+	* BufferedReader: 버퍼링하여 문자를 읽어옵니다.
+	* InputStreamReader: 바이트 스트림을 문자 스트림으로 변환합니다.
+	* Writer: 문자 출력 스트림의 추상 클래스입니다.
+	* FileWriter: 파일에 문자를 씁니다.
+	* BufferedWriter: 버퍼링하여 문자를 씁니다.
+	* OutputStreamWriter: 바이트 스트림을 문자 스트림으로 변환합니다.
+
+4. 파일 입출력 (File I/O)  
+* 파일 입출력은 파일을 읽고 쓰는 과정을 말합니다. 이는 데이터를 영구적으로 저장하거나 불러오는 데 사용됩니다. 파일 입출력은 대부분의 프로그래밍 언어에서 기본적으로 제공하는 기능입니다.  
+
+1. 기본 파일 입출력 작업  
+
+	1.	파일 열기:
+	    * 파일을 열어야 데이터를 읽거나 쓸 수 있습니다. 파일 열기 모드는 읽기, 쓰기, 추가 등이 있습니다.
+	    * 예: open() 함수 (Python), FileInputStream / FileOutputStream 클래스 (Java).
+	2.	파일 읽기/쓰기:
+	    * 파일의 데이터를 읽거나 쓰는 작업입니다. 데이터를 효율적으로 처리하기 위해 버퍼링을 사용하기도 합니다.
+	    * 예: read(), write() 메서드 (Python), read() / write() 메서드 (Java).
+	3.	파일 닫기:
+	    * 작업이 끝난 후에는 반드시 파일을 닫아야 합니다. 그렇지 않으면 메모리 누수나 파일 손상 등의 문제가 발생할 수 있습니다.
+	    * 예: close() 메서드 (Python, Java).
+```java
+import java.io.*;
+
+public class FileIOExample {
+    public static void main(String[] args) {
+        // 파일 쓰기
+        try (FileWriter writer = new FileWriter("example.txt")) {
+            writer.write("Hello, world!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // 파일 읽기
+        try (FileReader reader = new FileReader("example.txt");
+             BufferedReader br = new BufferedReader(reader)) {
+            String content = br.readLine();
+            
+            System.out.println(content);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```  
+5. 고급 파일 입출력 기술  
+
+* 버퍼링 (Buffering)  
+버퍼링은 입출력 속도를 높이기 위해 사용되는 기술입니다. 데이터를 직접 읽고 쓰는 대신 버퍼(임시 저장 공간)를 사용하여 데이터를 한 번에 처리합니다. 이를 통해 디스크 I/O의 빈도를 줄이고 성능을 향상시킬 수 있습니다.
+
+* 파일 포인터 (File Pointers)  
+파일 포인터는 현재 파일에서 읽거나 쓸 위치를 나타냅니다. 파일 포인터를 이동시켜 특정 위치에서부터 읽거나 쓸 수 있습니다.
+
+* 랜덤 액세스 파일 (Random Access File)  
+랜덤 액세스 파일을 사용하면 파일의 특정 위치로 이동하여 데이터를 읽거나 쓸 수 있습니다. 이는 대규모 파일에서 특정 데이터를 효율적으로 처리하는 데 유용합니다.  
+```java
+import java.io.*;
+
+public class RandomAccessFileExample {
+    public static void main(String[] args) {
+        try (RandomAccessFile raf = new RandomAccessFile("example.txt", "rw")) {
+            // 파일의 5번째 바이트로 이동
+            raf.seek(5);
+            raf.write("world".getBytes());
+
+            // 파일의 처음으로 이동
+            raf.seek(0);
+            String content = raf.readLine();
+            System.out.println(content);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```  
 ## 6월 7일 강의내용
 1교시 11장  
 1. Swing 컴포넌트 그리기
