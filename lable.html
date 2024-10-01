@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>파일 업로드와 색상 입력하기</title>
+</head>
+<body>
+    <label>선택한 동물과 어울리는색상을 찾으세요:
+        <input type="color" id="color" onchange="changeBackgroundColor()">
+    </label>
+
+    <p id="demo" style="width: 200px; height: 100px; border: 1px solid #000;">배경색 변경
+    </p>
+
+    <script>
+        function changeBackgroundColor(){
+            const selectedColor=document.getElementById('color').value;
+
+            document.getElementById('demo').style.backgroundColor=selectedColor;
+        }
+    </script>
+</body>
+</html>
