@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+    let num1, num2, add, op;
+    let x = Math.floor((Math.random() * 3) + 1);
+    document.write("x 난수:"+ x+ "<hr>");
+    //×= 1 : 가위, x = 2 : 바위, x = 3 : 보
+    num1 = parselnt(prompt("가위(1), 바위(2), 보(3) 중 원하는 숫자를 입력하세요"));
+    if (num1 == 1) {
+    document.write("x 난수:"+ x+ "사용자 : 가위 " +"<hr>");
+    }
+    if (num1 == 2) {
+    document.write("x 난수:"+ x+ "사용자 : 바위 " +"<hr>");
+    }
+    if (num1 == 3) {
+    document.write("x 난수:" +x+ "사용자 : 보"+"<hr>");
+    }
+    if (num1 == 1 && x== 3) {
+    document.write("사용자가 이겼습니다. "+"<hr>");
+    }
+    </script>
+</body>
+</html>
+    
