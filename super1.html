@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>간단한 쇼핑몰 사이트</title>
+    <style>
+        /* 스타일 정의 */
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 80%; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
+        .hidden { display: none; }
+        h1, h2 { color: #333; }
+        .btn { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        .btn-primary { background-color: #007BFF; color: #fff; border: none; }
+        .product { padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .related-products { display: flex; gap: 10px; overflow-x: auto; }
+        .related-product-item { border: 1px solid #ccc; padding: 10px; width: 100px; cursor: pointer; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="login-container" class="container">
+        <h2>로그인</h2>
+        <input type="text" id="login-username" placeholder="Username">
+        <input type="password" id="login-password" placeholder="Password">
+        <button class="btn btn-primary" onclick="login()">로그인</button>
+        <p>회원가입을 하시겠습니까? <span onclick="showSignup()" style="color:blue;cursor:pointer;">회원가입</span></p>
+    </div>
+
+    <div id="signup-container" class="container hidden">
+        <h2>회원기입</h2>
+        <input type="text" id="signup-username" placeholder="Username">
+        <input type="password" id="signup-password" placeholder="Password">
+        <button class="btn btn-primary" onclick="signup()">회원가입</button>
+        <p>로그인 하시겠습니까? <span onclick="showLogin()" style="color:blue;cursor:pointer;">로그인</span></p>
+    </div>
+
+    <div id="product-list-container" class="container hidden">
+        <h1>상품 목록</h1>
+        <div id="product-list"></div>
+        <button class="btn" onclick="logout()">로그아웃</button>
+    </div>
+
+    <div id="product-detail-container" class="container hidden">
+        <h2 id="product-title"></h2>
+        <img id="product-image" src="" alt="Product Image" style="width:100%; max-width:200px;">
+        <p id="product-description"></p>
+        <p id="product-price"></p>
+        <div>
+            <button onclick="changeQuantity(-1)">-</button>
+            <input type="number" id="product-quantity" value="1" min="1" style="width: 40px; text-align: center;" onchange="updateTotalPrice()">
+            <button onclick="changeQuantity(1)">+</button>
+            <p>총 가격: <span id="total-price"></span>원</p>
+            <button class="btn btn-primary" onclick="purchaseProduct()">구매하기</button>
+        </div>
+        
+        <!-- 관련 상품 목록 -->
+        <h3>관련 상품</h3>
+        <div id="related-products" class="related-products"></div>
+        
+        <button class="btn" onclick="showProductList()">목록</button>
+    </div>
+
+    <div id="purchase-modal" class="container hidden" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color: white;">
+        <h2>결제 확인</h2>
+        <p>상품: <span id="modal-product-name"></span></p>
+        <p>수량: <span id="modal-product-quantity"></span></p>
+        <p>단가: <span id="modal-product-price"></span>원</p>
+        <p>총 가격: <span id="modal-total-price"></span>원</p>
+        <button class="btn btn-primary" onclick="completePurchase()">결제하기</button>
+        <button class="btn" onclick="closeModal()">닫기</button>
+    </div>
+
+    <script>
+        // 사용자 데이터와 제품 데이터 예시
+        let users = [];
+        const products = [
+            { id: 1, name: '페인 목걸이', description: '하나의 링을 엮어서 이은 목걸이.', price: 29000, image: 'images/test1.jpg' },
+            { id: 2, name: '페인 팔찌', description: '하나의 링을 엮어서 이은 팔찌.', price: 49000, image: 'images/test2.jpg' },
+            { id: 3, name: '워키드 페인 목걸이', description: '본적이 없는 체인으로 엮은 목걸이.', price: 39000, image: 'images/test3.jpg' },
+        ];
+        let currentUser = null;
+        let selectedProduct = null;
+
+        // UI 전환 함수
+        function showLogin() {
+            document.getElementById('login-container').classList.remove('hidden');
+            document.getElementById('signup-container').classList.add('hidden');
+            document.getElementById('product-list-container').classList.add('hidden');
+            document.getElementById('product-detail-container').classList.add('hidden');
+        }
+        
+        function showSignup() {
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('signup-container').classList.remove('hidden');
+        }
+        
+        function showProductList() {
+            document.getElementById('product-list-container').classList.remove('hidden');
+            document.getElementById('product-detail-container').classList.add('hidden');
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('signup-container').classList.add('hidden');
+            displayProducts();
+        }
+
+        function showProductDetail(productId) {
+            selectedProduct = products.find(p => p.id === productId);
+            document.getElementById('product-title').innerText = selectedProduct.name;
+            document.getElementById('product-description').innerText = selectedProduct.description;
+            document.getElementById('product-price').innerText = `${selectedProduct.price}원`;
+            document.getElementById('product-image').src = selectedProduct.image;
+            document.getElementById('product-quantity').value = 1;
+            updateTotalPrice();
+            
+            // 관련 상품 표시
+            displayRelatedProducts(productId);
+            
+            document.getElementById('product-list-container').classList.add('hidden');
+            document.getElementById('product-detail-container').classList.remove('hidden');
+        }
+
+        // 로그인 함수
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                currentUser = user;
+                alert('로그인 되었습니다!!');
+                showProductList();
+            } else {
+                alert('회원가입을 해주세요!!');
+            }
+        }
+
+        // 회원가입 함수
+        function signup() {
+            const username = document.getElementById('signup-username').value;
+            const password = document.getElementById('signup-password').value;
+            if (users.find(u => u.username === username)) {
+                alert('아이디와 패스워드를 입력하세요!!');
+            } else {
+                users.push({ username, password });
+                alert('회원가입이 완료되었습니다!');
+                showLogin();
+            }
+        }
+
+        // 로그아웃 함수
+        function logout() {
+            currentUser = null;
+            showLogin();
+        }
+
+        // 상품 목록 표시 함수
+        function displayProducts() {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product';
+                productDiv.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>${product.price}원</p>
+                    <button onclick="showProductDetail(${product.id})">상세보기</button>
+                `;
+                productList.appendChild(productDiv);
+            });
+        }
+
+        // 수량 변경 함수
+        function changeQuantity(amount) {
+            const quantityInput = document.getElementById('product-quantity');
+            let quantity = parseInt(quantityInput.value) + amount;
+            if (quantity < 1) quantity = 1;
+            quantityInput.value = quantity;
+            updateTotalPrice();
+        }
+
+        // 총 가격 업데이트 함수
+        function updateTotalPrice() {
+            const quantity = parseInt(document.getElementById('product-quantity').value);
+            const totalPrice = selectedProduct.price * quantity;
+            document.getElementById('total-price').innerText = `${totalPrice}`;
+        }
+
+        // 구매 버튼 클릭 시 구매 화면으로 이동
+        function purchaseProduct() {
+            const quantity = parseInt(document.getElementById('product-quantity').value);
+            const totalPrice = selectedProduct.price * quantity;
+
+            // 구매 확인 모달창에 정보 표시
+            document.getElementById('modal-product-name').innerText = selectedProduct.name;
+            document.getElementById('modal-product-quantity').innerText = quantity;
+            document.getElementById('modal-product-price').innerText = `${selectedProduct.price}`;
+            document.getElementById('modal-total-price').innerText = `${totalPrice}`;
+            document.getElementById('purchase-modal').style.display = 'block';
+        }
+
+        // 구매 완료 함수
+        function completePurchase() {
+            alert('구매가 완료되었습니다! 감사합니다.');
+            closeModal();
+            showProductList();
+        }
+
+        // 모달 닫기 함수
+        function closeModal() {
+            document.getElementById('purchase-modal').style.display = 'none';
+        }
+
+        // 관련 상품 표시 함수
+        function displayRelatedProducts(currentProductId) {
+            const relatedProductsContainer = document.getElementById('related-products');
+            relatedProductsContainer.innerHTML = '';  // 기존 목록 지우기
+            const relatedProducts = products.filter(p => p.id !== currentProductId);
+
+            relatedProducts.forEach(product => {
+                const relatedProductDiv = document.createElement('div');
+                relatedProductDiv.className = 'related-product-item';
+                relatedProductDiv.onclick = () => showProductDetail(product.id);
+                relatedProductDiv.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" style="width:100px;">
+                    <p>${product.name}</p>
+                    <p>${product.price}원</p>
+                `;
+                relatedProductsContainer.appendChild(relatedProductDiv);
+            });
+        }
+
+        // 초기 로그인 화면 표시
+        showLogin();
+    </script>
+</body>
+</html>
