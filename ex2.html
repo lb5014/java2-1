@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홀수 짝수 판별기</title>
+</head>
+<body>
+    <h2>홀수 짝수 판별기</h2>
+    <input type="number" id="numberInput" placeholder="정수를 입력하세요">
+    <button onclick="checkOddEven()">판별</button>
+    <p id="result"></p>
+
+    <script>
+        function checkOddEven() {
+            let num = document.getElementById("numberInput").value;
+            let resultText = "";
+
+            if (num === "") {
+                resultText = "숫자를 입력해주세요.";
+            } else {
+                num = parseInt(num);
+                resultText = (num % 2 === 0) ? "짝수입니다." : "홀수입니다.";
+            }
+
+            document.getElementById("result").innerText = resultText;
+        }
+    </script>
+</body>
+</html>
