@@ -33,6 +33,7 @@
 
         // 블록 저장 배열
         const blocks = [];
+        let selectedBlock = null;
 
         // 색상을 지정하여 블록 생성
         function createBlock(x, y, z, color = 0x8B4513, size = 1) {
@@ -44,6 +45,25 @@
             blocks.push(block);
         }
 
+        // 블록 클릭 시 선택 기능
+        function onBlockClick(event) {
+            const mouse = new THREE.Vector2();
+            const raycaster = new THREE.Raycaster();
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(blocks);
+            
+            if (intersects.length > 0) {
+                selectedBlock = intersects[0].object;
+                selectedBlock.material.emissive = new THREE.Color(0xff0000); // 선택된 블록 강조
+            }
+        }
+        
+        window.addEventListener('click', onBlockClick);
+
         // UI 추가 (하단 컨트롤 패널)
         const controlPanel = document.createElement('div');
         controlPanel.id = 'controlPanel';
@@ -51,8 +71,9 @@
             <label>X: <input type="number" id="xCoord" value="0"></label>
             <label>Y: <input type="number" id="yCoord" value="0"></label>
             <label>Z: <input type="number" id="zCoord" value="0"></label>
-            <label>Color: <input type="color" id="Color" value="0"></label>
+            <label>Color: <input type="color" id="Color" value="#8B4513"></label>
             <button id="addBlock">Add Block</button>
+            <button id="removeBlock">Remove Selected Block</button>
         `;
         document.body.appendChild(controlPanel);
 
@@ -63,6 +84,15 @@
             const z = parseFloat(document.getElementById('zCoord').value);
             const color = parseInt((document.getElementById('Color').value).slice(1), 16);
             createBlock(x, y, z, color, 100);
+        });
+
+        // 선택된 블록 삭제 기능
+        document.getElementById('removeBlock').addEventListener('click', () => {
+            if (selectedBlock) {
+                scene.remove(selectedBlock);
+                blocks.splice(blocks.indexOf(selectedBlock), 1);
+                selectedBlock = null;
+            }
         });
 
         // 조명 추가
