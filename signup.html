@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .signup-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+        .signup-container h2 {
+            margin-bottom: 20px;
+        }
+        .signup-container input {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .signup-container button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .signup-container button:hover {
+            background: #0056b3;
+        }
+        .back-button {
+            background: #dc3545;
+            margin-top: 10px;
+        }
+        .back-button:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="signup-container">
+        <h2>Sign Up</h2>
+        <input type="text" id="userid" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password">
+        <input type="text" id="fullName" placeholder="Full Name">
+        <input type="text" id="phone" placeholder="Phone Number">
+        <input type="email" id="email" placeholder="Email">
+        <button id="signupBtn">Sign Up</button>
+        <button class="back-button" onclick="goBack()">Back</button>
+    </div>
+
+    <script>
+        document.getElementById('signupBtn').addEventListener('click', function() {
+            const userid = document.getElementById('userid').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const fullName = document.getElementById('fullName').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+
+            if (!userid || !password || !confirmPassword || !fullName || !phone || !email) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match.");
+                return;
+            }
+
+            console.log("User ID:", userid);
+            console.log("Password:", password);
+            console.log("Full Name:", fullName);
+            console.log("Phone:", phone);
+            console.log("Email:", email);
+
+            alert("Sign-up successful! Redirecting to login page...");
+            window.location.href = "login.html"; // 회원가입 후 로그인 페이지로 이동
+        });
+
+        function goBack() {
+            window.history.back(); // 이전 페이지로 이동
+        }
+    </script>
+
+</body>
+</html>

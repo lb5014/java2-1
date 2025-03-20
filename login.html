@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+        .login-container h2 {
+            margin-bottom: 20px;
+        }
+        .login-container input {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .login-container button:hover {
+            background: #0056b3;
+        }
+        .signup-button {
+            background: #28a745;
+            margin-top: 10px;
+        }
+        .signup-button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Login</h2>
+        <input type="text" id="loginUser" placeholder="Username">
+        <input type="password" id="loginPass" placeholder="Password">
+        <button id="loginBtn">Login</button>
+        <button class="signup-button" onclick="goToSignUp()">Sign Up</button>
+    </div>
+
+    <script>
+        // 임시 저장된 계정 정보 (서버 연동 가능)
+        const users = [
+            { username: "testUser", password: "1234" },
+            { username: "admin", password: "admin123" }
+        ];
+
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            const username = document.getElementById('loginUser').value;
+            const password = document.getElementById('loginPass').value;
+
+            const user = users.find(user => user.username === username && user.password === password);
+
+            if (!user) {
+                alert("Invalid username or password!");
+                return;
+            }
+
+            alert("Login successful! Redirecting to main page...");
+            window.location.href = "Minecraft-3D.html"; // 로그인 후 index.html로 이동
+        });
+
+        function goToSignUp() {
+            window.location.href = "signup.html"; // 회원가입 페이지로 이동
+        }
+    </script>
+
+</body>
+</html>

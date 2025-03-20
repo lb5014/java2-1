@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>소수 찾기</title>
+</head>
+<body>
+  <h1>소수 찾기</h1>
+  <div id="output"></div> <!-- 결과를 출력할 영역 -->
+
+  <script>
+    // 소수 판별 함수
+    function isPrime(num) {
+      if (num < 2) return false; // 0과 1은 소수가 아님
+      for (let i = 2; i <= Math.sqrt(num); i++) {
+        if (num % i === 0) return false; // 나누어 떨어지면 소수가 아님
+      }
+      return true; // 나누어 떨어지지 않으면 소수
+    }
+
+    // 정수 입력 받기
+    let n = parseInt(prompt("정수를 입력하세요:", ""), 10);
+
+    // 결과를 출력할 div 요소 가져오기
+    let outputDiv = document.getElementById("output");
+    outputDiv.innerHTML = `<h3>${n}보다 작은 소수:</h3>`;
+
+    // 글자 크기 설정 (5px부터 시작)
+    let fontSize = 5;
+
+    // 2부터 n-1까지 소수 판별
+    for (let i = 2; i < n; i++) {
+      if (isPrime(i)) {
+        let span = document.createElement("span"); // 새로운 요소 생성
+        span.textContent = i + " "; // 숫자 추가
+        span.style.fontSize = fontSize + "5px"; // 글자 크기 적용
+        outputDiv.appendChild(span); // 결과 div에 추가
+
+        fontSize += 5; // 다음 소수의 글자 크기 증가
+      }
+    }
+  </script>
+</body>
+</html>
