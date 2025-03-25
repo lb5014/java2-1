@@ -7,12 +7,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
+        /* 기본 스타일 설정 */
         body { margin: 0; overflow: hidden; display: flex; flex-direction: column; transition: background 0.3s; }
+        /* 하단 컨트롤 패널 스타일 */
         #controlPanel { display: flex; justify-content: center; align-items: center; padding: 10px; background: #f0f0f0; position: absolute; bottom: 0; width: 100%; }
+        /* 상단 패널 스타일 */
         #topPanel { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 10px; }
         #clock { font-size: 16px; font-weight: bold; }
+        /* 설정 패널 및 버튼 스타일 */
         #settingsPanel { position: absolute; top: 10px; right: 10px; }
         #settingsButton { padding: 5px 10px; cursor: pointer; }
+        /* 로그인/회원가입 패널 애니메이션 효과 */
         #authPanel {
             position: absolute;
             top: 50px;
@@ -28,16 +33,21 @@
             opacity: 1;
             transform: translateY(0);
         }
+        /* 입력 및 버튼 스타일 */
         input { margin: 5px; padding: 5px; width: 60px; }
         button { padding: 5px 10px; cursor: pointer; }
+        /* 캔버스 스타일 */
         canvas { flex-grow: 1; display: block; }
     </style>
 </head>
 <body>
+    
     <div id="topPanel">
         <button id="toggleMode">다크 모드</button>
         <span id="clock">00:00:00</span>
     </div>
+    
+    <!-- 설정 버튼 및 로그인/회원가입 패널 -->
     <div id="settingsPanel">
         <button id="settingsButton">⚙️</button>
         <div id="authPanel">
@@ -63,7 +73,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 카메라 컨트롤 추가
+        // Three.js 기본 설정
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
@@ -72,7 +82,7 @@
         // 블록 저장 배열
         const blocks = [];
         let selectedBlock = null;
-
+        // 블록 생성 함수
         function createBlock(x, y, z, color = 0x8B4513, size = 1) {
             const geometry = new THREE.BoxGeometry(size, size, size);
             const material = new THREE.MeshStandardMaterial({ color: color });
@@ -81,7 +91,17 @@
             scene.add(block);
             blocks.push(block);
         }
-
+        /*
+        **** canvas 에 정사각형 도면 추가
+        */
+        function createGrid(size, divisions) {
+            const gridHelper = new THREE.GridHelper(size, divisions, 0x000000, 0x000000);
+            gridHelper.position.y = 0.5; // 바닥에 약간 띄워 배치
+            scene.add(gridHelper);
+        }
+        createGrid(1000, 100); // 1000픽셀 크기, 10픽셀 간격으로 그리드 추가
+        
+        // 블록 클릭 이벤트 (선택 기능)
         function onBlockClick(event) {
             const mouse = new THREE.Vector2();
             const raycaster = new THREE.Raycaster();
@@ -99,7 +119,7 @@
         }
         
         window.addEventListener('click', onBlockClick);
-//dk
+
         const controlPanel = document.createElement('div');
         controlPanel.id = 'controlPanel';
         controlPanel.innerHTML = `
@@ -112,12 +132,14 @@
         `;
         document.body.appendChild(controlPanel);
 
+        
+
         document.getElementById('addBlock').addEventListener('click', () => {
             const x = parseFloat(document.getElementById('xCoord').value);
             const y = parseFloat(document.getElementById('yCoord').value);
             const z = parseFloat(document.getElementById('zCoord').value);
             const color = parseInt((document.getElementById('Color').value).slice(1), 16);
-            createBlock(x, y, z, color, 100);
+            createBlock(x, y, z, color, 10);
         });
         document.getElementById('loginButton').addEventListener('click', function() {
     window.location.href = "login.html";
@@ -133,6 +155,44 @@
             }
         });
 
+        function getMousePosition(event) {
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+
+    // 마우스 클릭 위치를 -1 ~ 1 범위로 변환
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // 카메라에서 광선을 쏨
+    raycaster.setFromCamera(mouse, camera);
+
+    // 광선과 평면(바닥) 교차 검사 (y=0 평면)
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const intersection = new THREE.Vector3();
+    raycaster.ray.intersectPlane(plane, intersection);
+
+    // 좌표를 10의 배수로 스냅 (격자 정렬)
+    const gridSize = 10; // 격자 크기
+    const snappedX = Math.round(intersection.x / gridSize) * gridSize + gridSize / 2;
+    const snappedY = Math.round(intersection.y / gridSize) * gridSize + gridSize / 2;
+    const snappedZ = Math.round(intersection.z / gridSize) * gridSize + gridSize / 2;
+
+    console.log(`마우스 클릭 위치 - X: ${snappedX}, Y: ${snappedY}, Z: ${snappedZ}`);
+
+    // 입력 필드 업데이트
+    document.getElementById('xCoord').value = snappedX;
+    document.getElementById('yCoord').value = snappedY;
+    document.getElementById('zCoord').value = snappedZ;
+
+    return { x: snappedX, y: snappedY, z: snappedZ };
+}
+
+// 마우스 클릭 이벤트 추가 (좌표 업데이트)
+renderer.domElement.addEventListener('click', (event) => {
+    getMousePosition(event);
+});
+
+         // 다크 모드 기능
         const toggleModeBtn = document.getElementById('toggleMode');
         let darkMode = false;
         toggleModeBtn.addEventListener('click', () => {
@@ -142,6 +202,7 @@
             scene.background = new THREE.Color(darkMode ? 0x222222 : 0xe0e0e0);
         });
 
+        // 시계 업데이트 기능
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').textContent = now.toLocaleTimeString();
@@ -149,6 +210,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // 조명 추가
         const light = new THREE.DirectionalLight(0xffffff, 1);
         light.position.set(5, 10, 5);
         scene.add(light);
@@ -156,6 +218,7 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
+        // 카메라 초기 위치 설정 및 애니메이션 루프 실행
         camera.position.set(200, 200, 200);
         controls.update();
 
