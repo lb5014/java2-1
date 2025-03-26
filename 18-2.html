@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>두 정수 곱하기</title>
+    <script>
+        (function() {
+            // 두 개의 정수를 입력받음
+            let x = parseInt(prompt("첫 번째 정수를 입력하세요:"));
+            let y = parseInt(prompt("두 번째 정수를 입력하세요:"));
+
+            // 결과 계산
+            let result = x * y;
+
+            // 화면에 출력
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("result").innerHTML = `입력한 값: ${x}, ${y} <br> 결과: ${result}`;
+            });
+        })();
+    </script>
+</head>
+<body>
+    <h1>두 정수의 곱셈 결과</h1>
+    <div id="result"></div>
+</body>
+</html>

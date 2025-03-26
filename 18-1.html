@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소수 개수 출력</title>
+    <script>
+        function countPrimes() {
+            // 사용자로부터 입력받은 숫자
+            let num = parseInt(prompt("소수 개수를 구할 숫자를 입력하세요:"));
+
+            // 소수를 찾을 배열 (소수를 담을 변수)
+            let primes = [];
+
+            // 2부터 num까지 반복
+            for (let i = 2; i <= num; i++) {
+                let isPrime = true;
+
+                // i가 소수인지 확인
+                for (let j = 2; j <= Math.sqrt(i); j++) {
+                    if (i % j === 0) {
+                        isPrime = false;
+                        break;
+                    }
+                }
+
+                // 소수라면 primes 배열에 추가
+                if (isPrime) {
+                    primes.push(i);
+                }
+            }
+
+            // 소수의 개수와 소수를 출력
+            let result = `${num} 까지의 소수는 ${primes.join(', ')} 총 ${primes.length}개입니다.`;
+            document.getElementById("result").innerHTML = result;
+        }
+    </script>
+</head>
+<body>
+    <h1>소수 개수 구하기</h1>
+    <button onclick="countPrimes()">소수 개수 구하기</button>
+
+    <div id="result"></div>

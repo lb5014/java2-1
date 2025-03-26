@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>숫자 크기 비교</title>
+    <script>
+        (function() {
+            // 1부터 100 사이의 난수를 생성
+            let target = Math.floor(Math.random() * 100) + 1;
+
+            // 사용자로부터 정수를 입력받음
+            let userNumber = parseInt(prompt("숫자를 입력하세요 (1~100):"));
+
+            // 결과 메시지 설정
+            let message;
+            if (userNumber > target) {
+                message = `입력한 숫자: ${userNumber} <br> 특정 숫자: ${target} <br> 결과: too Big`;
+            } else if (userNumber < target) {
+                message = `입력한 숫자: ${userNumber} <br> 특정 숫자: ${target} <br> 결과: too Small`;
+            } else {
+                message = `입력한 숫자: ${userNumber} <br> 특정 숫자: ${target} <br> 결과: 정답입니다! 🎉`;
+            }
+
+            // 화면에 출력
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("result").innerHTML = message;
+            });
+        })();
+    </script>
+</head>
+<body>
+    <h1>숫자 크기 비교</h1>
+    <div id="result"></div>
+</body>
+</html>
