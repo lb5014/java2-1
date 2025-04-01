@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    function displayFavorites(first, ...favs) {
+let str = `가장 좋아하는 과읷은 "${first}"군요`;
+return str;
+}
+console.log(displayFavorites("사과", "포도", "토마토"));
+
+let counter = 0;
+let timer = setInterval(() => { // 타이머 시작
+console.log("안녕하세요?")
+counter++; // 인사말 표시 횟수 1 증가
+if (counter === 5)
+clearInterval(timer); // counter = 5 라면 타이머 종료
+}, 2000 );
+  </script>
+</body>
+</html>
