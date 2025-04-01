@@ -102,23 +102,27 @@
         createGrid(1000, 100); // 1000픽셀 크기, 10픽셀 간격으로 그리드 추가
         
         // 블록 클릭 이벤트 (선택 기능)
-        function onBlockClick(event) {
-            const mouse = new THREE.Vector2();
-            const raycaster = new THREE.Raycaster();
-            
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(blocks);
-            
-            if (intersects.length > 0) {
-                selectedBlock = intersects[0].object;
-                selectedBlock.material.emissive = new THREE.Color(0xff0000);
-            }
-        }
+       // 블록 클릭 시 위 또는 아래에 새 블록 추가 기능 추가
+function onBlockClick(event) {
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(blocks);
+    
+    if (intersects.length > 0) {
+        selectedBlock = intersects[0].object;
+        const normal = intersects[0].face.normal;
+        const position = selectedBlock.position.clone().add(normal.multiplyScalar(10));
         
-        window.addEventListener('click', onBlockClick);
+        createBlock(position.x, position.y, position.z, 0x8B4513, 10);
+    }
+}
+
+window.addEventListener('click', onBlockClick);
 
         const controlPanel = document.createElement('div');
         controlPanel.id = 'controlPanel';
@@ -237,6 +241,27 @@ renderer.domElement.addEventListener('click', (event) => {
     }
 
     createPreviewBlock();
+
+    // 블록 클릭 시 위 또는 아래에 새 블록 추가 및 미리보기 블록 표시
+function onBlockClick(event) {
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(blocks);
+    
+    if (intersects.length > 0) {
+        selectedBlock = intersects[0].object;
+        const normal = intersects[0].face.normal;
+        const position = selectedBlock.position.clone().add(normal.multiplyScalar(10));
+        
+        // 미리보기 블록 위치 업데이트
+        previewBlock.position.set(position.x, position.y, position.z);
+    }
+}
 
     // ✅ 마우스 위치에 따라 미리보기 블록 이동 (정사각형 내부 중앙)
     function updatePreviewPosition(event) {
