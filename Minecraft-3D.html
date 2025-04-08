@@ -1,221 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft 3D Place</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <style>
-        /* 기본 스타일 설정 */
-        body { margin: 0; overflow: hidden; display: flex; flex-direction: column; transition: background 0.3s; }
-        /* 하단 컨트롤 패널 스타일 */
-        #controlPanel { display: flex; justify-content: center; align-items: center; padding: 10px; background: #f0f0f0; position: absolute; bottom: 0; width: 100%; }
-        /* 상단 패널 스타일 */
-        #topPanel { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 10px; }
-        #clock { font-size: 16px; font-weight: bold; }
-        /* 설정 패널 및 버튼 스타일 */
-        #settingsPanel { position: absolute; top: 10px; right: 10px; }
-        #settingsButton { padding: 5px 10px; cursor: pointer; }
-        /* 로그인/회원가입 패널 애니메이션 효과 */
-        #authPanel {
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        #authPanel.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        /* 입력 및 버튼 스타일 */
-        input { margin: 5px; padding: 5px; width: 60px; }
-        button { padding: 5px 10px; cursor: pointer; }
-        /* 캔버스 스타일 */
-        canvas { flex-grow: 1; display: block; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Minecraft 3D Place</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+
+    #topPanel { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 10px; }
+    #clock { font-size: 16px; font-weight: bold; }
+
+    #settingsPanel { position: absolute; top: 10px; right: 10px; }
+    #settingsButton { padding: 5px 10px; cursor: pointer; }
+    #authPanel {
+      position: absolute; top: 50px; right: 10px;
+      display: flex; flex-direction: column; gap: 5px;
+      opacity: 0; transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #authPanel.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    input, button { padding: 5px 10px; cursor: pointer; }
+    canvas { display: block; }
+
+    #colorPalette {
+      position: absolute;
+      top: 100px;
+      left: 10px;
+      background: #888a;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid #444;
+      display: grid;
+      grid-template-columns: repeat(3, 30px);
+      gap: 5px;
+      z-index: 10;
+    }
+
+    .color-box {
+      width: 30px;
+      height: 30px;
+      border: 2px solid #666;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .color-box.selected {
+      border: 3px solid orange;
+    }
+
+    #colorInput {
+      position: absolute;
+      left: -9999px;
+    }
+
+    #paletteLabel {
+      grid-column: span 3;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
-    
-    <div id="topPanel">
-        <button id="toggleMode">다크 모드</button>
-        <span id="clock">00:00:00</span>
+
+  <div id="topPanel">
+    <button id="toggleMode">다크 모드</button>
+    <span id="clock">00:00:00</span>
+  </div>
+
+  <div id="settingsPanel">
+    <button id="settingsButton">⚙️</button>
+    <div id="authPanel">
+      <button id="loginButton">로그인</button>
+      <button id="signupButton">회원가입</button>
     </div>
-    
-    <div id="settingsPanel">
-        <button id="settingsButton">⚙️</button>
-        <div id="authPanel">
-            <button id="loginButton">로그인</button>
-            <button id="signupButton">회원가입</button>
-        </div>
-    </div>
-    <script>
-        // 로그인 및 회원가입 버튼 애니메이션 기능
-        const settingsButton = document.getElementById('settingsButton');
-        const authPanel = document.getElementById('authPanel');
+  </div>
 
-        settingsButton.addEventListener('click', () => {
-            authPanel.classList.toggle('show');
-        });
+  <!-- 🎨 팔레트 -->
+  <div id="colorPalette">
+    <div id="paletteLabel">Color Palette</div>
+  </div>
 
-        // 기본 설정
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xe0e0e0);
-        
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+  <!-- 숨겨진 컬러 피커 -->
+  <input type="color" id="colorInput" />
 
-        // Three.js 기본 설정
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.screenSpacePanning = false;
+  <script>
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xe0e0e0);
 
-        // 블록 저장 배열
-        const blocks = [];
-        let selectedBlock = null;
-        // 블록 생성 함수
-        function createBlock(x, y, z, color = 0x8B4513, size = 1) {
-            const geometry = new THREE.BoxGeometry(size, size, size);
-            const material = new THREE.MeshStandardMaterial({ color: color });
-            const block = new THREE.Mesh(geometry, material);
-            block.position.set(x, y, z);
-            scene.add(block);
-            blocks.push(block);
-        }
-        /*
-        **** canvas 에 정사각형 도면 추가
-        */
-        function createGrid(size, divisions) {
-            const gridHelper = new THREE.GridHelper(size, divisions, 0x000000, 0x000000);
-            gridHelper.position.y = 0.5; // 바닥에 약간 띄워 배치
-            scene.add(gridHelper);
-        }
-        createGrid(1000, 100); // 1000픽셀 크기, 10픽셀 간격으로 그리드 추가
-        
-        // 블록 클릭 이벤트 (선택 기능)
-       // 블록 클릭 시 위 또는 아래에 새 블록 추가 기능 추가
-function onBlockClick(event) {
-    const mouse = new THREE.Vector2();
-    const raycaster = new THREE.Raycaster();
-    
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(blocks);
-    
-    if (intersects.length > 0) {
-        selectedBlock = intersects[0].object;
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    let currentColor = "#8B4513";
+
+    const paletteColors = [
+      "#000000", "#330019", "#330033",
+      "#8B0000", "#CC5500", "#FFFFFF",
+      "#FFF380", "#DFFF00", "#7FFF00",
+      "#228B22", "#006400", "#013220",
+      "#003333", "#006666", "#00CCCC",
+      "#90EE90", "#B0E0E6", "#87CEEB",
+      "#6495ED", "#00008B", "#000080",
+      "#000033", "#111111", "#2E0854",
+      "#663399", "#DA70D6", "#FFB6C1",
+      "#FFC0CB", "#FAEBD7", "#F5F5DC",
+      "#DEB887", "#A0522D", "#800000",
+      "#4B0082", "#2F2F2F", "#696969",
+      "#1C1C1C", "#333333", "#808080",
+      "#A9A9A9", "#D3D3D3", "#F5F5F5"
+    ];
+
+    const palette = document.getElementById("colorPalette");
+    const colorInput = document.getElementById("colorInput");
+    let selectedBox = null;
+
+    // 색상 박스 생성 및 클릭 이벤트
+    paletteColors.forEach(color => {
+      const box = document.createElement("div");
+      box.className = "color-box";
+      box.style.backgroundColor = color;
+      box.dataset.color = color;
+
+      box.addEventListener("click", () => {
+        if (selectedBox) selectedBox.classList.remove("selected");
+        box.classList.add("selected");
+        selectedBox = box;
+
+        currentColor = color;
+        colorInput.value = color;
+        colorInput.click(); // 컬러 피커 팝업 열기
+      });
+
+      palette.appendChild(box);
+    });
+
+    // 컬러 피커에서 색 선택 시 업데이트
+    colorInput.addEventListener("input", (e) => {
+      currentColor = e.target.value;
+      if (selectedBox) {
+        selectedBox.style.backgroundColor = currentColor;
+        selectedBox.dataset.color = currentColor;
+      }
+    });
+
+    function getSelectedColor() {
+      return new THREE.Color(currentColor);
+    }
+
+    const blocks = [];
+
+    function createBlock(x, y, z, color = 0x8B4513, size = 10) {
+      const geometry = new THREE.BoxGeometry(size, size, size);
+      const material = new THREE.MeshStandardMaterial({ color });
+      const block = new THREE.Mesh(geometry, material);
+      block.position.set(x, y, z);
+      scene.add(block);
+      blocks.push(block);
+    }
+
+    function createGrid(size, divisions) {
+      const gridHelper = new THREE.GridHelper(size, divisions, 0x000000, 0x000000);
+      gridHelper.position.y = 0.5;
+      scene.add(gridHelper);
+    }
+
+    createGrid(1000, 100);
+
+    renderer.domElement.addEventListener("click", (event) => {
+      const mouse = new THREE.Vector2();
+      const raycaster = new THREE.Raycaster();
+
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const intersects = raycaster.intersectObjects(blocks);
+
+      if (intersects.length > 0) {
+        const selectedBlock = intersects[0].object;
         const normal = intersects[0].face.normal;
         const position = selectedBlock.position.clone().add(normal.multiplyScalar(10));
-        
-        createBlock(position.x, position.y, position.z, 0x8B4513, 10);
+        createBlock(position.x, position.y, position.z, getSelectedColor());
+      } else {
+        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        const intersection = new THREE.Vector3();
+        raycaster.ray.intersectPlane(plane, intersection);
+
+        const gridSize = 10;
+        const offset = gridSize / 2;
+        const snappedX = Math.floor(intersection.x / gridSize) * gridSize + offset;
+        const snappedY = 5;
+        const snappedZ = Math.floor(intersection.z / gridSize) * gridSize + offset;
+
+        createBlock(snappedX, snappedY, snappedZ, getSelectedColor());
+      }
+    });
+
+    document.getElementById('settingsButton').addEventListener('click', () => {
+      document.getElementById('authPanel').classList.toggle('show');
+    });
+
+    document.getElementById('loginButton').addEventListener('click', () => {
+      window.location.href = "login.html";
+    });
+
+    document.getElementById('signupButton').addEventListener('click', () => {
+      window.location.href = "signup.html";
+    });
+
+    const toggleModeBtn = document.getElementById('toggleMode');
+    let darkMode = false;
+    toggleModeBtn.addEventListener('click', () => {
+      darkMode = !darkMode;
+      document.body.style.background = darkMode ? '#333' : '#fff';
+      toggleModeBtn.textContent = darkMode ? 'Light Mode' : 'Dark Mode';
+      scene.background = new THREE.Color(darkMode ? 0x222222 : 0xe0e0e0);
+    });
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString();
     }
-}
+    setInterval(updateClock, 1000);
+    updateClock();
 
-window.addEventListener('click', onBlockClick);
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 5);
+    scene.add(light);
 
-        const controlPanel = document.createElement('div');
-        controlPanel.id = 'controlPanel';
-        controlPanel.innerHTML = `
-            <label>X: <input type="number" id="xCoord" value="0"></label>
-            <label>Y: <input type="number" id="yCoord" value="0"></label>
-            <label>Z: <input type="number" id="zCoord" value="0"></label>
-            <label>Color: <input type="color" id="Color" value="#8B4513"></label>
-        `;
-        document.body.appendChild(controlPanel);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
 
-        document.getElementById('loginButton').addEventListener('click', function() {
-    window.location.href = "login.html";
-        });
-        document.getElementById('signupButton').addEventListener('click', function() {
-    window.location.href = "signup.html";
-        });
+    camera.position.set(200, 200, 200);
+    controls.update();
 
-        function getMousePosition(event) {
-    const mouse = new THREE.Vector2();
-    const raycaster = new THREE.Raycaster();
-
-    // 마우스 클릭 위치를 -1 ~ 1 범위로 변환
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    // 카메라에서 광선을 쏨 
-    raycaster.setFromCamera(mouse, camera);
-
-    // 광선과 평면(바닥) 교차 검사 (y=0 평면)
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-    const intersection = new THREE.Vector3();
-    raycaster.ray.intersectPlane(plane, intersection);
-
-    // 좌표를 10의 배수로 스냅 (격자 정렬)
-    const gridSize = 10; // 격자 크기
-    const offset = gridSize / 2; // 정사각형 중앙으로 이동
-    const snappedX = Math.floor(intersection.x / gridSize) * gridSize + offset;
-    const snappedY = 5; // 바닥 위로 띄우기
-    const snappedZ = Math.floor(intersection.z / gridSize) * gridSize + offset;
-
-    console.log(`마우스 클릭 위치 - X: ${snappedX}, Y: ${snappedY}, Z: ${snappedZ}`);
-
-    // 입력 필드 업데이트
-    document.getElementById('xCoord').value = snappedX;
-    document.getElementById('yCoord').value = snappedY;
-    document.getElementById('zCoord').value = snappedZ;
-
-    return { x: snappedX, y: snappedY, z: snappedZ };
-}
-
-// 마우스 클릭 이벤트 추가 (좌표 업데이트 및 블록 생성)
-renderer.domElement.addEventListener('click', (event) => {
-    const { x, y, z } = getMousePosition(event);
-    const color = parseInt((document.getElementById('Color').value).slice(1), 16);
-    createBlock(x, y, z, color, 10);
-});
-
-         // 다크 모드 기능
-        const toggleModeBtn = document.getElementById('toggleMode');
-        let darkMode = false;
-        toggleModeBtn.addEventListener('click', () => {
-            darkMode = !darkMode;
-            document.body.style.background = darkMode ? '#333' : '#fff';
-            toggleModeBtn.textContent = darkMode ? 'Light Mode' : 'Dark Mode';
-            scene.background = new THREE.Color(darkMode ? 0x222222 : 0xe0e0e0);
-        });
-
-        // 시계 업데이트 기능
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString();
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // 조명 추가
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(5, 10, 5);
-        scene.add(light);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-
-        // 카메라 초기 위치 설정 및 애니메이션 루프 실행
-        camera.position.set(200, 200, 200);
-        controls.update();
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
 </body>
 </html>
