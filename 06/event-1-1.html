@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마우스 오버 색 변경</title>
+  <style>
+    #box {
+      width: 300px;
+      height: 200px;
+      background-color: #fff;
+      margin: 50px auto;
+      border: 2px solid #555;
+      transition: background-color 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="box"></div>
+
+  <script>
+    const box = document.getElementById('box');
+
+    box.addEventListener('mouseover', function() {
+      box.style.backgroundColor = 'yellow';
+    });
+
+    box.addEventListener('mouseout', function() {
+      box.style.backgroundColor = '#fff';
+    });
+  </script>
+
+</body>
+</html>

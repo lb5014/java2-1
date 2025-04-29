@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>팽수 방향키 이동</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      background-color: #f0f0f0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #game-area {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    #pengsoo {
+      width: 100px;
+      position: absolute;
+      top: 200px;
+      left: 200px;
+      transition: top 0.1s ease, left 0.1s ease;
+    }
+
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-area">
+    <div id="info">← ↑ ↓ → 방향키로 팽수를 움직여 보세요!</div>
+    <img id="pengsoo" src="images/pengsoo.png" alt="팽수">
+  </div>
+
+  <script>
+    const pengsoo = document.getElementById("pengsoo");
+
+    let topPos = 200;
+    let leftPos = 200;
+    const step = 20;
+
+    document.addEventListener("keydown", (e) => {
+      switch (e.code) {
+        case "ArrowUp":
+          topPos -= step;
+          break;
+        case "ArrowDown":
+          topPos += step;
+          break;
+        case "ArrowLeft":
+          leftPos -= step;
+          break;
+        case "ArrowRight":
+          leftPos += step;
+          break;
+      }
+
+      // 화면 벗어나지 않도록 제한
+      const maxTop = window.innerHeight - pengsoo.offsetHeight;
+      const maxLeft = window.innerWidth - pengsoo.offsetWidth;
+
+      topPos = Math.max(0, Math.min(maxTop, topPos));
+      leftPos = Math.max(0, Math.min(maxLeft, leftPos));
+
+      pengsoo.style.top = `${topPos}px`;
+      pengsoo.style.left = `${leftPos}px`;
+    });
+  </script>
+</body>
+</html>
