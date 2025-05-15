@@ -136,6 +136,7 @@
     <button class="tool-btn" id="selectBtn">🖱️ 블록 선택</button>
     <button class="tool-btn" id="applyColorBtn">🖌️ 색상 적용</button>
     <button class="tool-btn" id="deleteSelectedBtn">🗑️ 선택 삭제</button>
+    <button class="tool-btn" id="saveBtn">💾 저장</button>
   </div>
 
   <script>
@@ -398,6 +399,28 @@
     document.addEventListener("mouseup", () => {
       isDragging = false;
     });
+    // 저장 버튼 클릭 시 블록 정보 저장
+document.getElementById("saveBtn").addEventListener("click", () => {
+  const savedData = blocks.map(block => ({
+    x: block.position.x,
+    y: block.position.y,
+    z: block.position.z,
+    color: block.material.color.getHexString()
+  }));
+  localStorage.setItem("savedBlocks", JSON.stringify(savedData));
+  alert("블록이 저장되었습니다!");
+});
+
+// 페이지 로드 시 저장된 블록 불러오기
+window.addEventListener("load", () => {
+  const saved = localStorage.getItem("savedBlocks");
+  if (saved) {
+    const data = JSON.parse(saved);
+    data.forEach(({x, y, z, color}) => {
+      createBlock(x, y, z, new THREE.Color("#" + color));
+    });
+  }
+});
   </script>
 </body>
 </html>
