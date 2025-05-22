@@ -1,84 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft 3D Place</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <style>
-        body { margin: 0; overflow: hidden; display: flex; flex-direction: column; }
-        canvas { display: block; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3D 블록 에디터</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      overflow: hidden;
+      background-color: #111;
+      color: #fff;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .palette {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .color-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid white;
+    }
+    canvas {
+      display: block;
+    }
+    button, #pickr {
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    #clock {
+      margin-top: 10px;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/>
 </head>
 <body>
-    <script>
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xe0e0e0);
+  <div id="ui">
+    <div class="palette" id="palette"></div>
+    <div id="pickr"></div>
+    <button id="add">블록 추가</button>
+    <button id="delete">블록 삭제</button>
+    <button id="applyColor">색상 적용</button>
+    <button id="save">저장</button>
+    <button id="load">불러오기</button>
+    <button id="toggleDark">다크모드 전환</button>
+    <div id="clock"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+  <script>
+    let scene, camera, renderer, controls;
+    let blocks = [];
+    let selectedColor = '#ff0000';
+    let selectedBlock = null;
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(20, 20, 20);
-        
-        const renderer = new THREE.WebGLRenderer();
+    init();
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x111111);
+
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+      camera.position.set(10, 10, 10);
+      camera.lookAt(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({antialias: true});
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const light = new THREE.AmbientLight(0xffffff, 1);
+      scene.add(light);
+
+      const gridHelper = new THREE.GridHelper(20, 20);
+      scene.add(gridHelper);
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+      });
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
+      animate();
+    }
 
-        // 격자 바닥 생성
-        const gridSize = 20;
-        const gridDivisions = 20;
-        const gridHelper = new THREE.GridHelper(gridSize, gridDivisions);
-        scene.add(gridHelper);
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
 
-        const blocks = [];
-        const blockSize = gridSize / gridDivisions; // 블록 크기를 격자에 맞춤
+    function hexToThreeColor(hex) {
+      return new THREE.Color(hex);
+    }
 
-        function createBlock(x, y, z, color = 0x8B4513) {
-            const geometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
-            const material = new THREE.MeshStandardMaterial({ color: color });
-            const block = new THREE.Mesh(geometry, material);
-            
-            // 좌표를 격자 크기에 맞게 정렬
-            block.position.set(
-                Math.round(x / blockSize) * blockSize, 
-                Math.round(y / blockSize) * blockSize + blockSize / 2, // 바닥 위에 위치하도록 조정
-                Math.round(z / blockSize) * blockSize
-            );
-            
-            scene.add(block);
-            blocks.push(block);
+    function createBlock(x = 0, y = 0.5, z = 0, color = selectedColor) {
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const material = new THREE.MeshStandardMaterial({color: hexToThreeColor(color)});
+      const cube = new THREE.Mesh(geometry, material);
+      cube.position.set(x, y, z);
+      cube.userData.color = color;
+      scene.add(cube);
+      blocks.push(cube);
+
+      cube.callback = () => {
+        if (selectedBlock) selectedBlock.material.emissive.set(0x000000);
+        selectedBlock = cube;
+        selectedBlock.material.emissive.set(0x333333);
+      };
+
+      return cube;
+    }
+
+    function deleteSelectedBlock() {
+      if (selectedBlock) {
+        scene.remove(selectedBlock);
+        blocks = blocks.filter(b => b !== selectedBlock);
+        selectedBlock = null;
+      }
+    }
+
+    function applyColorToSelected() {
+      if (selectedBlock) {
+        selectedBlock.material.color.set(selectedColor);
+        selectedBlock.userData.color = selectedColor;
+      }
+    }
+
+    function saveBlocks() {
+      const data = blocks.map(b => ({
+        x: b.position.x,
+        y: b.position.y,
+        z: b.position.z,
+        color: b.userData.color
+      }));
+      localStorage.setItem('blockData', JSON.stringify(data));
+      alert('저장되었습니다.');
+    }
+
+    function loadBlocks() {
+      const data = JSON.parse(localStorage.getItem('blockData') || '[]');
+      blocks.forEach(b => scene.remove(b));
+      blocks = [];
+      data.forEach(d => createBlock(d.x, d.y, d.z, d.color));
+    }
+
+    function setupPickr() {
+      const pickr = Pickr.create({
+        el: '#pickr',
+        theme: 'classic',
+        default: selectedColor,
+        components: {
+          preview: true,
+          opacity: false,
+          hue: true,
+          interaction: {
+            input: true,
+            save: true
+          }
         }
+      });
+      pickr.on('save', (color) => {
+        selectedColor = color.toHEXA().toString();
+        pickr.hide();
+      });
+    }
 
-        window.addEventListener('click', (event) => {
-            const mouse = new THREE.Vector2();
-            const raycaster = new THREE.Raycaster();
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            
-            const intersects = raycaster.intersectObject(gridHelper);
-            if (intersects.length > 0) {
-                const point = intersects[0].point;
-                createBlock(point.x, blockSize / 2, point.z);
-            }
-        });
+    function setupPalette() {
+      const palette = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#888888'];
+      const container = document.getElementById('palette');
+      palette.forEach(col => {
+        const div = document.createElement('div');
+        div.className = 'color-box';
+        div.style.backgroundColor = col;
+        div.addEventListener('click', () => selectedColor = col);
+        container.appendChild(div);
+      });
+    }
 
-        // 빛 추가
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(10, 20, 10);
-        scene.add(light);
+    function toggleDarkMode() {
+      const isDark = document.body.style.backgroundColor === 'white';
+      document.body.style.backgroundColor = isDark ? '#111' : 'white';
+      document.body.style.color = isDark ? 'white' : 'black';
+    }
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
+    function updateClock() {
+      const now = new Date();
+      const clock = document.getElementById('clock');
+      clock.textContent = now.toLocaleTimeString();
+    }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
+    // Event listeners
+    document.getElementById('add').addEventListener('click', () => createBlock());
+    document.getElementById('delete').addEventListener('click', deleteSelectedBlock);
+    document.getElementById('applyColor').addEventListener('click', applyColorToSelected);
+    document.getElementById('save').addEventListener('click', saveBlocks);
+    document.getElementById('load').addEventListener('click', loadBlocks);
+    document.getElementById('toggleDark').addEventListener('click', toggleDarkMode);
+
+    // Raycasting for selection
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    window.addEventListener('click', (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(blocks);
+      if (intersects.length > 0) {
+        intersects[0].object.callback?.();
+      }
+    });
+
+    setupPickr();
+    setupPalette();
+    setInterval(updateClock, 1000);
+  </script>
 </body>
 </html>
