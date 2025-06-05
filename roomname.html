@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>방명록</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    input, textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    #submitBtn {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+
+    #submitBtn:hover {
+      background-color: #eaeaea;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .action-btn {
+      flex: 1;
+      min-width: 70px;
+      max-width: 100px;
+      padding: 8px 12px;
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .action-btn:hover {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+
+<h2>방명록</h2>
+
+<input type="text" id="name" placeholder="이름">
+<textarea id="content" placeholder="방명록 내용을 입력하세요"></textarea>
+<input type="text" id="image" placeholder="사진 링크 (https://example.com/image.jpg)">
+<button id="submitBtn">등록하기</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>사진</th>
+      <th>이름</th>
+      <th>내용</th>
+      <th>비고</th>
+    </tr>
+  </thead>
+  <tbody id="entryTableBody"></tbody>
+</table>
+
+<script>
+  let editingIndex = -1;
+
+  document.getElementById('submitBtn').addEventListener('click', submitEntry);
+
+  function submitEntry() {
+    const name = document.getElementById('name').value;
+    const content = document.getElementById('content').value;
+    const image = document.getElementById('image').value;
+    const tbody = document.getElementById('entryTableBody');
+
+    if (!name || !content || !image) {
+      alert("모든 항목을 입력해주세요.");
+      return;
+    }
+
+    if (editingIndex === -1) {
+      const row = tbody.insertRow();
+      row.innerHTML = `
+        <td><img src="${image}" alt="사진"></td>
+        <td>${name}</td>
+        <td>${content}</td>
+        <td>
+          <div class="btn-group">
+            <button class="action-btn" onclick="editEntry(this)">수정</button>
+            <button class="action-btn" onclick="deleteEntry(this)">삭제</button>
+          </div>
+        </td>`;
+    } else {
+      const row = tbody.rows[editingIndex];
+      row.cells[0].innerHTML = `<img src="${image}" alt="사진">`;
+      row.cells[1].textContent = name;
+      row.cells[2].textContent = content;
+      editingIndex = -1;
+      document.getElementById('submitBtn').textContent = '등록하기';
+    }
+
+    document.getElementById('name').value = '';
+    document.getElementById('content').value = '';
+    document.getElementById('image').value = '';
+  }
+
+  function editEntry(button) {
+    const row = button.closest('tr');
+    editingIndex = row.rowIndex - 1;
+    document.getElementById('name').value = row.cells[1].textContent;
+    document.getElementById('content').value = row.cells[2].textContent;
+    document.getElementById('image').value = row.cells[0].querySelector('img').src;
+    document.getElementById('submitBtn').textContent = '수정하기';
+  }
+
+  function deleteEntry(button) {
+    const row = button.closest('tr');
+    document.getElementById('entryTableBody').deleteRow(row.rowIndex - 1);
+    if (editingIndex === row.rowIndex - 1) {
+      document.getElementById('submitBtn').textContent = '등록하기';
+      editingIndex = -1;
+      document.getElementById('name').value = '';
+      document.getElementById('content').value = '';
+      document.getElementById('image').value = '';
+    }
+  }
+</script>
+
+</body>
+</html>
